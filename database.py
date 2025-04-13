@@ -14,5 +14,5 @@ if not DATABASE_URL:
      Exception("The DATABASE_URL are not defined. Please define the enviroment variable.")
 
 engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
