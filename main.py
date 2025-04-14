@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 import models, schemas
 from database import engine, SessionLocal
+from fastapi import Query
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -35,6 +36,13 @@ def get_expense(expense_id: int, db: Session = Depends(get_db)):
             detail=f"Expense with id {expense_id} not found"
         )
     return expense
+
+@app.get("/expenses/by_category/total", status_code=200)
+def get_total_by_category(category: str, db: Session = Depends(get_db)):
+    total = db.query(func.sum(models.Expense.amount)) \
+              .filter(models.Expense.category == category) \
+              .scalar() or 0
+    return {"category": category, "total_amount": total}
 
 @app.post("/expenses", response_model=schemas.Expense, status_code=status.HTTP_201_CREATED)
 def create_expense(expense: schemas.ExpenseCreate, db: Session = Depends(get_db)):
