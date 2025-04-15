@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-import models, schemas
-from database import engine, SessionLocal
+from . import models, schemas
+from .database import engine, SessionLocal
 from fastapi import Query
 
 models.Base.metadata.create_all(bind=engine)
