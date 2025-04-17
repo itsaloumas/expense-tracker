@@ -1,0 +1,39 @@
+name: Docker CI
+
+# Εκκινάει στα pushes στο dev και στα PRs προς main
+on:
+  push:
+    branches: [ "dev" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker images
+        run: docker-compose build
+
+      - name: Start DB service
+        run: docker-compose up -d db
+
+      - name: Wait for MariaDB to be healthy
+        run: |
+          echo "Waiting for MariaDB to be ready…"
+          until docker exec expense_db mysqladmin ping -h localhost -u root -pmy-secret-pw --silent; do
+            sleep 2
+          done
+
+      - name: Run pytest tests inside web container
+        run: docker-compose run --rm web python -m pytest tests/
+
+      - name: Tear down
+        if: always()
+        run: docker-compose down --volumes
