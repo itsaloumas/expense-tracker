@@ -4,3 +4,4 @@ SQLAlchemy==1.4.46
 mariadb==1.1.7
 pytest==7.2.2
 httpx==0.24.1
+prometheus_client==0.16.0
