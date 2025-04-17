@@ -2,16 +2,13 @@ name: Docker CI
 
 on:
   push:
-    branches: [ "dev", "master" ]      
+    branches: [ "dev", "master" ]
   pull_request:
     branches: [ "master" ]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    if: |
-      github.ref == 'refs/heads/dev' ||
-      github.event_name == 'pull_request'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -35,7 +32,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build-and-test
-    if: github.ref == 'refs/heads/master' # θα τρέξει τώρα σε πραγματικό push στο master
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
