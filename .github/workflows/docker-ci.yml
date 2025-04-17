@@ -20,12 +20,9 @@ jobs:
       - name: Start DB service
         run: docker compose up -d db
 
-      - name: Wait for MariaDB to be healthy
-        run: |
-          echo "Waiting for MariaDB to be ready…"
-          until docker exec expense_db mysqladmin ping -h localhost -u root -pmy-secret-pw --silent; do
-            sleep 2
-          done
+      # --- Αντί για mysqladmin healthcheck ---
+      - name: Wait for MariaDB to be ready
+        run: sleep 20
 
       - name: Run pytest tests inside web container
         run: docker compose run --rm web python -m pytest tests/
