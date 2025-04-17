@@ -1,4 +1,4 @@
-name: Docker CI / CD
+name: Docker CI / CD
 
 on:
   push:
@@ -7,42 +7,55 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
     steps:
       - uses: actions/checkout@v3
 
-      - name: Build Docker images
-        run: docker compose build
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}   
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Start DB service
-        run: docker compose up -d db
+      - name: Build image (cache only, no push)
+        id: meta
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: skyypro/expense-tracker-web:ci-${{ github.sha }}
 
-      - name: Wait 20″ for MariaDB
-        run: sleep 20
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
 
-      - name: Run pytest
-        run: docker compose run --rm web python -m pytest tests/
-
-      - name: Tear down
-        if: always()
+      - run: docker compose build
+      - run: docker compose up -d db
+      - run: sleep 20
+      - run: docker compose run --rm web python -m pytest tests/
+      - if: always()
         run: docker compose down --volumes
 
-
   deploy:
-    needs: build-and-test
     runs-on: ubuntu-latest
+    needs: test
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v3
 
-      - name: Log in to Docker Hub
+      - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}   # skyypro
-          password: ${{ secrets.DOCKERHUB_TOKEN }}      # PAT με Write
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build & push image
+      - name: Build & push final image
         uses: docker/build-push-action@v4
         with:
           context: .
