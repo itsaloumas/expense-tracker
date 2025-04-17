@@ -20,7 +20,6 @@ jobs:
       - name: Start DB service
         run: docker compose up -d db
 
-      # --- Αντί για mysqladmin healthcheck ---
       - name: Wait for MariaDB to be ready
         run: sleep 20
 
