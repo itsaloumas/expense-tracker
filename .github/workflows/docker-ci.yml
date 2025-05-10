@@ -17,15 +17,16 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}   
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # 👉  Χτίζουμε ΜΟΝΟ το web-image, με context το ./app
       - name: Build image (cache only, no push)
         id: meta
         uses: docker/build-push-action@v4
         with:
-          context: .
-          file: ./Dockerfile
+          context: ./app
+          file: ./app/Dockerfile
           push: false
           tags: skyypro/expense-tracker-web:ci-${{ github.sha }}
 
@@ -35,7 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - run: docker compose build
+      - run: docker compose build          # χτίζει web & db
       - run: docker compose up -d db
       - run: sleep 20
       - run: docker compose run --rm web python -m pytest tests/
@@ -58,8 +59,8 @@ jobs:
       - name: Build & push final image
         uses: docker/build-push-action@v4
         with:
-          context: .
-          file: ./Dockerfile
+          context: ./app
+          file: ./app/Dockerfile
           push: true
           tags: |
             skyypro/expense-tracker-web:latest
