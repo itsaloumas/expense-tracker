@@ -11,7 +11,10 @@ from sqlalchemy.ext.declarative import declarative_base
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
-     Exception("The DATABASE_URL are not defined. Please define the enviroment variable.")
+    raise EnvironmentError(
+        "Environment variable DATABASE_URL is not set. "
+        "Example: export DATABASE_URL='mariadb+mariadbconnector://user:pass@localhost:3306/expense_db'"
+    )
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
