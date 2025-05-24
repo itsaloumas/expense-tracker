@@ -4,7 +4,8 @@ from sqlalchemy import func
 from . import models, schemas
 from .database import engine, SessionLocal
 from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
-from starlette.responses import Response   # 👈 για το /metrics
+from starlette.responses import Response
+from typing import List
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -12,13 +13,18 @@ app = FastAPI()
 
 REQUEST_COUNTER = Counter(
     "expense_api_requests_total",
-    "Total HTTP requests to Expense Tracker API"
+    "Total HTTP requests to Expense Tracker API",
+    ["method", "path", "status_code"]
 )
 
-@app.middleware("http")
 async def count_requests(request: Request, call_next):
-    REQUEST_COUNTER.inc()
-    return await call_next(request)
+    response = await call_next(request)
+    REQUEST_COUNTER.labels(
+        method=request.method,
+        path=request.url.path,
+        status_code=response.status_code
+    ).inc()
+    return response
 
 @app.get("/metrics")
 def metrics():
@@ -90,3 +96,14 @@ def delete_expense(expense_id: int, db: Session = Depends(get_db)):
     expense_query.delete()
     db.commit()
     return {"detail": f"Expense with id {expense_id} deleted"}
+
+@app.get("/expenses/category/{category_name}", response_model=List[schemas.Expense])
+def get_expenses_by_category(category_name: str, db: Session = Depends(get_db)):
+    expenses = (
+        db.query(models.Expense)
+          .filter(models.Expense.category == category_name)
+          .all()
+    )
+    if not expenses:
+        return []
+    return expenses

@@ -20,7 +20,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 👉  Χτίζουμε ΜΟΝΟ το web-image, με context το ./app
       - name: Build image (cache only, no push)
         id: meta
         uses: docker/build-push-action@v4
@@ -36,7 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - run: docker compose build          # χτίζει web & db
+      - run: docker compose build         
       - run: docker compose up -d db
       - run: sleep 20
       - run: docker compose run --rm web python -m pytest tests/
