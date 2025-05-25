@@ -7,6 +7,6 @@ CREATE TABLE IF NOT EXISTS expenses (
 );
 
 INSERT INTO expenses (description, amount, category)
-VALUES  ('Lunch – sandwich', 6.50, 'Food'),
+VALUES  ('Lunch - sandwich', 6.50, 'Food'),
         ('Monthly bus pass', 30.00, 'Transport'),
         ('Netflix subscription', 12.99, 'Entertainment');
